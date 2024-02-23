@@ -20,53 +20,34 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Appium
+      # Install Android SDK
+      - name: Install Android SDK
         run: |
-          npm install -g appium@2
-          appium -v
+          wget https://dl.google.com/android/repository/commandlinetools-win-6609375_latest.zip -O android-sdk.zip
+          mkdir -p $HOME\Android\sdk
+          tar xf android-sdk.zip -C $HOME\Android\sdk
 
-      - name: Set up UIAutomator2
+      # Add Android SDK tools to PATH
+      - name: Add Android SDK tools to PATH
         run: |
-          appium driver install uiautomator2
+          echo "export PATH=$HOME\Android\sdk\cmdline-tools\latest\bin:$PATH" >> $PROFILE
+          echo "export ANDROID_HOME=$HOME\Android\sdk" >> $PROFILE
+          echo "export PATH=$ANDROID_HOME\emulator:$PATH" >> $PROFILE
+          echo "export PATH=$ANDROID_HOME\platform-tools:$PATH" >> $PROFILE
+        shell: bash
 
-      - name: Start Appium server
-        run: |
-          start  appium
+      # Install Emulator
+      - name: Install Emulator
+        run: sdkmanager --install emulator
 
- 
-      - name: Run tests
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          arch: x86_64
-          profile: Nexus 6
-          script: |
-            mvn clean test
+      # Install System Images
+      - name: Install System Images
+        run: sdkmanager --install "system-images;android-29;default;x86_64"
 
-      - name: Upload Test Screenshot
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-screenshot
-          path: ./Automation/test-result.png
+      # Create AVD
+      - name: Create AVD
+        run: echo no | avdmanager create avd --force -n test --abi 'default/x86_64' --package 'system-images;android-29;default;x86_64' --device 'Nexus 6'
 
-      - name: Upload Test Recording
-        if: always()
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-recording
-          path: ./Automation/test-results-recording.mp4
-
-      - name: Download artifacts
-        if: always()
-        uses: actions/download-artifact@v2
-        with:
-          name: test-screenshot
-          path: Results/screenshot
-
-      - name: Download recording
-        if: always()
-        uses: actions/download-artifact@v2
-        with:
-          name: test-recording
-          path: Results/recording
+      # Start Emulator
+      - name: Start Emulator
+        run: emulator -avd test -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
