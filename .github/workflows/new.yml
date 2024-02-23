@@ -23,18 +23,16 @@ jobs:
       # Install Android SDK
       - name: Install Android SDK
         run: |
-          wget https://dl.google.com/android/repository/commandlinetools-win-6609375_latest.zip -O android-sdk.zip
-          mkdir -p $HOME\Android\sdk
-          tar xf android-sdk.zip -C $HOME\Android\sdk
+          Invoke-WebRequest -Uri https://dl.google.com/android/repository/commandlinetools-win-6609375_latest.zip -OutFile android-sdk.zip
+          Expand-Archive -Path android-sdk.zip -DestinationPath $env:USERPROFILE\Android\sdk
 
       # Add Android SDK tools to PATH
       - name: Add Android SDK tools to PATH
         run: |
-          echo "export PATH=$HOME\Android\sdk\cmdline-tools\latest\bin:$PATH" >> $PROFILE
-          echo "export ANDROID_HOME=$HOME\Android\sdk" >> $PROFILE
-          echo "export PATH=$ANDROID_HOME\emulator:$PATH" >> $PROFILE
-          echo "export PATH=$ANDROID_HOME\platform-tools:$PATH" >> $PROFILE
-        shell: bash
+          echo "export PATH=$env:USERPROFILE\Android\sdk\cmdline-tools\latest\bin:$PATH" >> $PROFILE
+          echo "export ANDROID_HOME=$env:USERPROFILE\Android\sdk" >> $PROFILE
+          echo "export PATH=$env:ANDROID_HOME\emulator:$PATH" >> $PROFILE
+          echo "export PATH=$env:ANDROID_HOME\platform-tools:$PATH" >> $PROFILE
 
       # Install Emulator
       - name: Install Emulator
